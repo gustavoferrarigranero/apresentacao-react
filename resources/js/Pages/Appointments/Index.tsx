@@ -1,7 +1,8 @@
 import { Head } from '@inertiajs/react';
 import type { AppointmentPageProps } from '../../Features/Appointments/types';
+import {AppointmentFilters} from "../../Features/Appointments/components/AppointmentFilters";
 
-export default function Index({ flash }: AppointmentPageProps) {
+export default function Index({ filters, professionals, flash }: AppointmentPageProps) {
     return (
         <>
             <Head title="Agenda da clínica" />
@@ -16,6 +17,7 @@ export default function Index({ flash }: AppointmentPageProps) {
                 </div>
               </header>
               {flash.success && <div className="alert success">{flash.success}</div>}
+              <AppointmentFilters filters={filters} professionals={professionals} />
             </main>
         </>
     );
