@@ -30,8 +30,3 @@ export type AppointmentPageProps = {
         success?: string;
     };
 };
-
-export type AppointmentFiltersProps = {
-  filters: AppointmentFilters;
-  professionals: Professional[];
-};

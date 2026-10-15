@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Appointment;
 use App\Models\Professional;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AppointmentFlowTest extends TestCase
@@ -17,7 +18,7 @@ class AppointmentFlowTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_agenda_displays_filtered_appointments(): void
+    public function test_agenda_returns_the_react_page_with_filtered_props(): void
     {
         $professional = Professional::create(['name' => 'Dra. Ana', 'specialty' => 'Clínica']);
         Appointment::create(['professional_id' => $professional->id, 'patient_name' => 'Maria', 'scheduled_at' => '2026-10-15 09:00:00', 'status' => 'confirmed']);
@@ -25,8 +26,14 @@ class AppointmentFlowTest extends TestCase
 
         $this->get('/agenda?date=2026-10-15&status=confirmed')
             ->assertOk()
-            ->assertSee('Maria')
-            ->assertDontSee('João');
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Appointments/Index')
+                ->has('appointments', 1)
+                ->where('appointments.0.patientName', 'Maria')
+                ->where('appointments.0.status', 'confirmed')
+                ->has('professionals', 1)
+                ->where('filters.status', 'confirmed')
+            );
     }
 
     public function test_appointment_is_created_with_backend_validation(): void
