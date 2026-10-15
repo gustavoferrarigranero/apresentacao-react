@@ -7,11 +7,14 @@ use App\Models\Appointment;
 use App\Models\Professional;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+
+
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AppointmentController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $filters = $request->validate([
             'date' => ['nullable', 'date'],
@@ -19,7 +22,7 @@ class AppointmentController extends Controller
             'status' => ['nullable', 'in:confirmed,pending,cancelled'],
         ]);
 
-        return view('appointments.index', [
+        return Inertia::render('Appointments/Index', [
             'appointments' => Appointment::query()
                 ->with('professional')
                 ->forDate($filters['date'] ?? now()->toDateString())
@@ -32,7 +35,7 @@ class AppointmentController extends Controller
                 'date' => $filters['date'] ?? now()->toDateString(),
                 'professional' => $filters['professional'] ?? '',
                 'status' => $filters['status'] ?? '',
-            ],
+            ]
         ]);
     }
 
