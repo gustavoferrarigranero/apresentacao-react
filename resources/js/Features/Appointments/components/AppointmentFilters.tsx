@@ -27,21 +27,21 @@ export function AppointmentFilters({ filters, professionals }: Props) {
                 </label>
                 <label>
                     Profissional
-                    <select value={values.professional} onChange={(event) => setValues({ ...values, professional: event.target.value })}>
+                    <select data-testid="professional" value={values.professional} onChange={(event) => setValues({ ...values, professional: event.target.value })}>
                         <option value="">Todos</option>
                         {professionals.map((professional) => <option key={professional.id} value={professional.id}>{professional.name}</option>)}
                     </select>
                 </label>
                 <label>
                     Status
-                    <select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                    <select data-testid="status" value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
                         <option value="">Todos</option>
                         <option value="confirmed">Confirmada</option>
                         <option value="pending">Pendente</option>
                         <option value="cancelled">Cancelada</option>
                     </select>
                 </label>
-                <button type="submit">Atualizar agenda</button>
+                <button type="submit" data-testid="button">Atualizar agenda</button>
             </form>
         </section>
     );
