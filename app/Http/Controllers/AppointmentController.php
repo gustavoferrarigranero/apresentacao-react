@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppointmentRequest;
+use App\Http\Resources\AppointmentResource;
 use App\Models\Appointment;
 use App\Models\Professional;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-
-
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,20 +21,24 @@ class AppointmentController extends Controller
             'status' => ['nullable', 'in:confirmed,pending,cancelled'],
         ]);
 
+        $activeFilters = [
+            'date' => $filters['date'] ?? now()->toDateString(),
+            'professional' => $filters['professional'] ?? '',
+            'status' => $filters['status'] ?? '',
+        ];
+
         return Inertia::render('Appointments/Index', [
-            'appointments' => Appointment::query()
-                ->with('professional')
-                ->forDate($filters['date'] ?? now()->toDateString())
-                ->when($filters['professional'] ?? null, fn ($query, $professional) => $query->where('professional_id', $professional))
-                ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-                ->orderBy('scheduled_at')
-                ->get(),
-            'professionals' => Professional::query()->orderBy('name')->get(),
-            'filters' => [
-                'date' => $filters['date'] ?? now()->toDateString(),
-                'professional' => $filters['professional'] ?? '',
-                'status' => $filters['status'] ?? '',
-            ]
+            'appointments' => AppointmentResource::collection(
+                Appointment::query()
+                    ->with('professional')
+                    ->forDate($activeFilters['date'])
+                    ->when($activeFilters['professional'], fn ($query, $professional) => $query->where('professional_id', $professional))
+                    ->when($activeFilters['status'], fn ($query, $status) => $query->where('status', $status))
+                    ->orderBy('scheduled_at')
+                    ->get()
+            )->resolve(),
+            'professionals' => Professional::query()->orderBy('name')->get(['id', 'name', 'specialty']),
+            'filters' => $activeFilters,
         ]);
     }
 
