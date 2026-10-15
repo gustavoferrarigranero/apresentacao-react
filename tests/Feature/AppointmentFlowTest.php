@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Appointment;
 use App\Models\Professional;
+use App\Repositories\TimeRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mockery;
 use Tests\TestCase;
 
 class AppointmentFlowTest extends TestCase
@@ -20,8 +23,17 @@ class AppointmentFlowTest extends TestCase
 
     public function test_agenda_returns_the_react_page_with_filtered_props(): void
     {
-        $professional = Professional::create(['name' => 'Dra. Ana', 'specialty' => 'Clínica']);
-        Appointment::create(['professional_id' => $professional->id, 'patient_name' => 'Maria', 'scheduled_at' => '2026-10-15 09:00:00', 'status' => 'confirmed']);
+        $professional = Professional::create([
+            'name' => 'Dra. Ana', 'specialty' => 'Clínica']
+        );
+
+        Appointment::create([
+            'professional_id' => $professional->id,
+            'patient_name' => 'Maria',
+            'scheduled_at' => '2026-10-15 09:00:00',
+            'status' => 'confirmed'
+        ]);
+
         Appointment::create(['professional_id' => $professional->id, 'patient_name' => 'João', 'scheduled_at' => '2026-10-16 09:00:00', 'status' => 'pending']);
 
         $this->get('/agenda?date=2026-10-15&status=confirmed')
@@ -40,6 +52,13 @@ class AppointmentFlowTest extends TestCase
     {
         $professional = Professional::create(['name' => 'Dr. Bruno', 'specialty' => 'Cardiologia']);
 
+        $this->assertNotNull($professional->id);
+
+        $this->assertDatabaseHas('professionals', [
+            'id' => $professional->id,
+            'name' => $professional->name,
+        ]);
+
         $this->post('/agenda', [
             'patient_name' => 'Carla Souza',
             'professional_id' => $professional->id,
@@ -52,6 +71,37 @@ class AppointmentFlowTest extends TestCase
 
     public function test_invalid_appointment_returns_validation_errors(): void
     {
-        $this->post('/agenda', [])->assertSessionHasErrors(['patient_name', 'professional_id', 'scheduled_at', 'status']);
+        $this->post('/agenda', [
+            'patient_name'=> 'Teste'
+        ])
+            ->assertSessionHasErrors([
+                'professional_id', 'scheduled_at', 'status'
+            ]);
+    }
+
+    public function test_mock_request_with_fake(): void
+    {
+        Http::fake([
+            'api.example.com*' => Http::response([
+                'data' => 'mocked response'
+            ], 200),
+        ]);
+
+        $response = app(TimeRepository::class)->getTimeWithApi();
+
+        $this->assertEquals('mocked response', $response['data']);
+    }
+
+    public function test_mock_request_with_mockery(): void
+    {
+        $repository = Mockery::mock(TimeRepository::class);
+
+        $repository->shouldReceive('getTimeWithApi')
+            ->once()
+            ->andReturn(['data' => 'mocked response']);
+
+        $response = $repository->getTimeWithApi();
+
+        $this->assertEquals('mocked response', $response['data']);
     }
 }
