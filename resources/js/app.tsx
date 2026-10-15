@@ -1,7 +1,6 @@
 import { createInertiaApp } from '@inertiajs/react';
 import type { ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
-import '../css/app.css';
 
 const pages = import.meta.glob<{ default: ComponentType }>('./Pages/**/*.tsx');
 
